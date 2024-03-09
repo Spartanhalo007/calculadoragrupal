@@ -98,6 +98,58 @@ class MainActivity : AppCompatActivity() {
                 if (position < string.length) throw RuntimeException("Unexpected: "+ char.toChar())
                 return x
             }
+            fun parseExpression(): Double {
+                var x = parseTerm()
+                while (true) {
+                    if (eat('+'.toInt())) x += parseTerm()
+                    else if (eat('-'.toInt())) x -= parseTerm()
+                    else if (eat('%'.toInt())) x *= 0.01
+                    else return x
+                }
+            }
 
+            fun parseTerm(): Double{
+                var x = parseFactor()
+                while (true)
+                    if (eat('*'.toInt())) x *= parseFactor()
+                    else if (eat('/'.toInt())) x /= parseFactor()
+                    else return x
+            }
+
+            fun parseFactor(): Double {
+                if (eat('+'.toInt())) return parseFactor()
+                if (eat('-'.toInt())) return -parseFactor()
+
+                var x: Double
+                var startPosition = position
+
+                if (eat('('.toInt())) {
+                    x = parseExpression()
+                    eat(')'.toInt())
+                } else if (char in '0'.toInt()..'9'.toInt() || char == '.'.toInt()) {
+                    while (char in '0'.toInt()..'9'.toInt() || char == '.'.toInt()) nextChar()
+                    x = string.substring(startPosition, position).toDouble()
+                } else {
+                    throw RuntimeException("Unexpected: " + char.toChar())
+                }
+
+                while (true) {
+                    if (eat('÷'.toInt()) || eat('/'.toInt())) {
+                        x /= parseFactor()
+                    } else if (eat('x'.toInt()) || eat('*'.toInt())) {
+                        x *= parseFactor()
+                    } else {
+                        break
+                    }
+                }
+
+                if (eat('%'.toInt())) x *= 0.01
+
+                if (eat('^'.toInt())) x = Math.pow(x, parseFactor())
+                return x
+            }
+
+        }.parse()
+    }
 
 }
